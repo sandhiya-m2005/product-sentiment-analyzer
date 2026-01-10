@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Snapdeal Sentiment Analyzer</title>
+<link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+/* --- Global Styles --- */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f7f9fc;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+header h1 {
+    margin: 0;
+    font-size: 1.8rem;
+}
+
+/* --- Buttons --- */
+.btn {
+    padding: 8px 20px;
+    border: none;
+    background-color: #1d4ed8;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background-color 0.2s;
+}
+
+.btn:hover {
+    background-color: #2563eb;
+}
+
+/* --- Search --- */
+.search {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.search input {
+    flex: 1 1 250px;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+/* --- Loading --- */
+#loading {
+    font-weight: bold;
+    color: #1d4ed8;
+    text-align: center;
+    margin: 20px 0;
+    display: none;
+}
+
+/* --- Cards --- */
+.cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 15px;
+    margin-bottom: 30px;
+}
+
+.card {
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.green { color: #16a34a; }
+.red { color: #dc2626; }
+.yellow { color: #d97706; }
+
+/* --- Charts --- */
+.charts {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 1 1 400px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    height: 300px;
+}
+
+.chart-container h3 {
+    text-align: center;
+    margin-top: 0;
+    margin-bottom: 15px;
+}
+
+/* --- Responsive tweaks --- */
+@media(max-width:600px){
+    header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    .search {
+        flex-direction: column;
+    }
+}
+</style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Snapdeal Sentiment Analyzer</h1>
+        <button class="btn history-btn" onclick="window.location.href='{{ url_for('routes.history') }}'">
+            View Sentiment History
+        </button>
+    </header>
+
+    <div class="search">
+        <input id="url" placeholder="Paste Snapdeal product URL">
+        <button class="btn analyze-btn" onclick="analyze()">Analyze</button>
+    </div>
+
+    <div id="loading">Analyzing sentiment, please wait...</div>
+
+    <div class="cards">
+        <div class="card">Overall<br><span id="overall">-</span></div>
+        <div class="card">Avg Polarity<br><span id="avg">-</span></div>
+        <div class="card green">Positive<br><span id="pos">-</span></div>
+        <div class="card red">Negative<br><span id="neg">-</span></div>
+        <div class="card yellow">Neutral<br><span id="neu">-</span></div>
+    </div>
+
+    <div class="charts">
+        <div class="chart-container">
+            <h3>Pie Chart</h3>
+            <canvas id="pie"></canvas>
+        </div>
+        <div class="chart-container">
+            <h3>Bar Chart</h3>
+            <canvas id="bar"></canvas>
+        </div>
+    </div>
+</div>
+
+<script>
+let pie, bar;
+
+function formatNumber(n) {
+    return typeof n === 'number' ? n.toFixed(2) : n;
+}
+
+function analyze() {
+    const productUrl = document.getElementById("url").value.trim();
+    if(!productUrl){ alert("Please paste a Snapdeal product URL!"); return; }
+    if (!/^https?:\/\/(www\.)?snapdeal\.com/.test(productUrl)) {
+        alert("Please enter a valid Snapdeal URL!");
+        return;
+    }
+
+    document.getElementById("loading").style.display = "block";
+
+    fetch("/analyze", {
+        method:"POST",
+        headers: {"Content-Type":"application/json"},
+        body: JSON.stringify({url: productUrl})
+    })
+    .then(res => res.json())
+    .then(d => {
+        document.getElementById("loading").style.display = "none";
+        if(d.error){ alert(d.error); return; }
+
+        document.getElementById("overall").innerText = d.overall;
+        document.getElementById("avg").innerText = formatNumber(d.avg);
+        document.getElementById("pos").innerText = formatNumber(d.positive);
+        document.getElementById("neg").innerText = formatNumber(d.negative);
+        document.getElementById("neu").innerText = formatNumber(d.neutral);
+
+        // Pie chart
+        if(pie) pie.destroy();
+        pie = new Chart(document.getElementById("pie"), {
+            type:"pie",
+            data:{
+                labels:["Positive","Negative","Neutral"],
+                datasets:[{
+                    data:[d.positive,d.negative,d.neutral],
+                    backgroundColor:["#16a34a","#dc2626","#d97706"]
+                }]
+            },
+            options:{responsive:true, maintainAspectRatio:false}
+        });
+
+        // Bar chart
+        if(bar) bar.destroy();
+        bar = new Chart(document.getElementById("bar"), {
+            type:"bar",
+            data:{
+                labels:["Positive","Negative","Neutral"],
+                datasets:[{
+                    label:"Sentiment Count",
+                    data:[d.positive,d.negative,d.neutral],
+                    backgroundColor:["#16a34a","#dc2626","#d97706"]
+                }]
+            },
+            options:{
+                responsive:true,
+                maintainAspectRatio:false,
+                scales:{y:{beginAtZero:true, precision:0}},
+                plugins:{
+                    legend:{display:false},
+                    title:{display:true, text:"Sentiment Analysis Bar Chart"}
+                }
+            }
+        });
+    })
+    .catch(err => {
+        document.getElementById("loading").style.display = "none";
+        alert("Error: "+err);
+    });
+}
+</script>
+
+</body>
+</html>

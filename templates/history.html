@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sentiment History</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<h1>Sentiment History</h1>
+<a href="{{ url_for('routes.index') }}">Back to Analyze</a>
+<table border="1" cellpadding="10" style="margin:auto;">
+<tr>
+<th>ID</th><th>Product URL</th><th>Sentiment</th><th>Overall</th><th>Avg</th><th>Positive</th><th>Negative</th><th>Neutral</th><th>Date</th>
+</tr>
+{% for r in results %}
+<tr>
+<td>{{ r.id }}</td>
+<td><a href="{{ r.product_url }}" target="_blank">Link</a></td>
+<td>{{ r.sentiment_text }}</td>
+<td>{{ r.overall }}</td>
+<td>{{ r.avg_polarity }}</td>
+<td>{{ r.positive }}</td>
+<td>{{ r.negative }}</td>
+<td>{{ r.neutral }}</td>
+<td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+</tr>
+{% endfor %}
+</table>
+</body>
+</html>

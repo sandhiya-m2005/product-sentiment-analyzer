@@ -1,0 +1,88 @@
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background: #f7f9fc;
+    color: #333;
+    margin: 0;
+    padding: 0;
+}
+
+.container {
+    max-width: 1000px;
+    margin: 20px auto;
+    padding: 0 20px;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h1 {
+    margin: 0;
+}
+
+.btn {
+    padding: 8px 20px;
+    border: none;
+    background-color: #1d4ed8;
+    color: white;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 14px;
+}
+
+.btn:hover {
+    background-color: #2563eb;
+}
+
+.search {
+    margin: 20px 0;
+    display: flex;
+    gap: 10px;
+}
+
+.search input {
+    flex: 1;
+    padding: 10px;
+    font-size: 14px;
+    border-radius: 5px;
+    border: 1px solid #ccc;
+}
+
+.cards {
+    display: flex;
+    gap: 15px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+}
+
+.card {
+    flex: 1 1 150px;
+    background: white;
+    padding: 15px;
+    border-radius: 8px;
+    text-align: center;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+    font-weight: bold;
+    font-size: 16px;
+}
+
+.green { color: #16a34a; }
+.red { color: #dc2626; }
+.yellow { color: #d97706; }
+
+.charts {
+    display: flex;
+    gap: 30px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.chart-container {
+    background: white;
+    padding: 20px;
+    border-radius: 10px;
+    flex: 1 1 400px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+}
